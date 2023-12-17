@@ -19,8 +19,17 @@ namespace RadioFurniture.Behaviour
         [SerializeField]
         private List<AudioClip> _channelSeekClips = new();
 
+        [SerializeField]
+        private AudioClip _static;
+
         private MP3Stream? _stream;
         private Guid? _lastStationId;
+        private bool _playingStatic = false;
+
+        private void Awake()
+        {
+            _audioSource.volume = 0.5f;
+        }
 
         public void TogglePowerLocalClient()
         {
@@ -46,6 +55,10 @@ namespace RadioFurniture.Behaviour
         public void ToggleStationLocalClient()
         {
             Debug.Log("TOGGLING STATION");
+            if (_radioOn)
+            {
+                ChangeStationServerRpc();
+            }
         }
 
         [ServerRpc(RequireOwnership = false)]
@@ -63,6 +76,14 @@ namespace RadioFurniture.Behaviour
         public void TurnOffRadioServerRpc()
         {
             TurnOffRadioClientRpc();
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void ChangeStationServerRpc()
+        {
+            if (!_radioOn) return;
+            _lastStationId = GetRandomRadioGuid();
+            TurnOnAndSyncRadioClientRpc(_lastStationId!.Value.ToString());
         }
 
         [ClientRpc]
@@ -89,14 +110,22 @@ namespace RadioFurniture.Behaviour
         {
             Debug.Log("Changing radio state!");
             Debug.Log(state);
-         
+
+            StopStaticIfPlaying();
+
             if (state && _lastStationId != null)
             {
+                Debug.Log("Changing radio station...");
+                PlayTransitionSound();
+                PlayStatic();
+
                 var station = RadioManager.GetRadioStationByGuid(_lastStationId.Value);
                 if (station != null)
                 {
-                    Debug.Log("Changing radio station...");
-                    PlayTransitionSound();
+                    if (_stream != null)
+                    {
+                        Stop();
+                    }
                     PlayAudioFromStream(station.UrlResolved.ToString());
                 }
             }
@@ -113,6 +142,14 @@ namespace RadioFurniture.Behaviour
             var seekClip = _channelSeekClips[UnityEngine.Random.Range(0, _channelSeekClips.Count)];
             _audioSource.PlayOneShot(seekClip);
         }
+
+        private void PlayStatic()
+        {
+            _playingStatic = true;
+            _audioSource.clip = _static;
+            _audioSource.Play();
+        }
+
         public void PlayAudioFromStream(string uri)
         {
             if (_stream == null) _stream = new MP3Stream();
@@ -134,6 +171,8 @@ namespace RadioFurniture.Behaviour
         {
             if (_stream != null && _stream.decomp)
             {
+                StopStaticIfPlaying();
+
                 Debug.Log("new clip just dropped.");
                 _audioSource.clip = AudioClip.Create("mp3_Stream", int.MaxValue,
                     _stream.bufferedWaveProvider.WaveFormat.Channels,
@@ -141,6 +180,17 @@ namespace RadioFurniture.Behaviour
                     true, new AudioClip.PCMReaderCallback(_stream.ReadData));
 
                 _stream.decomp = false; //Do not create shitload of audioclips
+            }
+        }
+
+        private void StopStaticIfPlaying()
+        {
+            if (_playingStatic)
+            {
+                _audioSource.Stop();
+                _audioSource.time = 0;
+                _audioSource.clip = null;
+                _playingStatic = false;
             }
         }
 
