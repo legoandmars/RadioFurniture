@@ -32,15 +32,11 @@ namespace RadioFurniture
 
             RegisterRPCs();
             LethalLib.Modules.Unlockables.RegisterUnlockable(assets.unlockable, 1, LethalLib.Modules.StoreType.Decor);
+            RadioManager.PreloadStations();
 
             Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
 
             return;
-            var radioManagerObject = new GameObject("RadioManager");
-            UnityEngine.Object.DontDestroyOnLoad(radioManagerObject);
-            radioManagerObject.hideFlags = HideFlags.HideAndDontSave;
-            radioManagerObject.AddComponent<RadioManager>();
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
         }
 
         private void RegisterRPCs()

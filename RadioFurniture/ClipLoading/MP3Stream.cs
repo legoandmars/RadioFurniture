@@ -226,7 +226,6 @@ namespace RadioFurniture.ClipLoading
             {
                 if (bufferedWaveProvider != null)
                 {
-                    Debug.Log("NO BUFF!");
                     double bufferedSeconds = bufferedWaveProvider.BufferedDuration.TotalSeconds;
                     ShowBufferState(bufferedSeconds, bufferedWaveProvider.BufferDuration.TotalSeconds);
                     // make it stutter less if we buffer up a decent amount before playing
