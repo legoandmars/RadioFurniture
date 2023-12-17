@@ -61,7 +61,7 @@ namespace RadioFurniture.ClipLoading
             webRequest.Headers.Clear();
             webRequest.Headers.Add("GET", "/ HTTP/1.0");
             webRequest.Headers.Add("Icy-MetaData", "1");
-            webRequest.UserAgent = "WinampMPEG/5.09";
+            webRequest.UserAgent = "LethalCompany/RadioFurniture/1.0.0";
             HttpWebResponse resp;
             try
             {

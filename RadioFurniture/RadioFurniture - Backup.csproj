@@ -63,6 +63,6 @@
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	<!--<Exec Command="xcopy /y /d  &quot;$(TargetDir)$(TargetFileName)&quot; &quot;C:/Program Files (x86)/Steam/steamapps/common/Lethal Company/BepInEx/plugins&quot;" />-->
-	<Exec Command="cd C:\Users\Isaac\Downloads\NetcodePatcher-2.4.0&#xD;&#xA;NetcodePatcher.dll $(TargetDir) deps/&#xD;&#xA;xcopy /y /d  &quot;$(TargetDir)$(TargetFileName)&quot; &quot;C:/Program Files (x86)/Steam/steamapps/common/Lethal Company/BepInEx/plugins&quot;" />
+	<Exec Command="cd C:\Users\Isaac\Downloads\NetcodePatcher-2.4.0" />
   </Target>
 </Project>
