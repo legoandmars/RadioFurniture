@@ -29,14 +29,19 @@ namespace RadioFurniture.Managers
             Debug.Log("Searching Radio API for stations!");
             // Initialization
             var radioBrowser = new RadioBrowserClient();
-            List<StationInfo> topByVotes = await radioBrowser.Stations.GetByVotesAsync();
+            List<StationInfo> topByVotes = await radioBrowser.Stations.GetByVotesAsync(5000);
             _stations = topByVotes.Where(x => x != null && x.Codec != null && x.Codec == "MP3" && x.UrlResolved != null && x.UrlResolved.Scheme == "https").ToList();
+            Debug.Log("Finished searching radio API for stations.");
+            Debug.Log($"Found {_stations.Count}");
         }
 
         public static StationInfo? GetRandomRadioStation()
         {
             if (_stations.Count == 0) return null;
-            return _stations[UnityEngine.Random.Range(0, _stations.Count)];
+            var station = _stations[UnityEngine.Random.Range(0, _stations.Count)];
+            Debug.Log(station.Name);
+            Debug.Log(station.StationUuid);
+            return station;
         }
 
         public static StationInfo? GetRadioStationByGuid(Guid guid)

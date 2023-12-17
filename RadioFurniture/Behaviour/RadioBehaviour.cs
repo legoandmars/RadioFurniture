@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using RadioFurniture.ClipLoading;
+using RadioFurniture.Managers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,6 +16,9 @@ namespace RadioFurniture.Behaviour
         [SerializeField]
         private AudioSource _audioSource = default;
 
+        [SerializeField]
+        private List<AudioClip> _channelSeekClips = new();
+
         private MP3Stream? _stream;
         private Guid? _lastStationId;
 
@@ -23,12 +27,20 @@ namespace RadioFurniture.Behaviour
             Debug.Log("TOGGLING POWER");
             if (_radioOn)
             {
-                TurnOffRadioClientRpc();
+                TurnOffRadioServerRpc();
             }
             else
             {
-                TurnOnRadioClientRpc();
+                TurnOnRadioServerRpc();
             }
+        }
+
+        private Guid GetRandomRadioGuid()
+        {
+            var randomStation = RadioManager.GetRandomRadioStation();
+            if (randomStation == null) return Guid.Empty;
+
+            return randomStation.StationUuid;
         }
 
         public void ToggleStationLocalClient()
@@ -39,6 +51,11 @@ namespace RadioFurniture.Behaviour
         [ServerRpc(RequireOwnership = false)]
         public void TurnOnRadioServerRpc()
         {
+            if (_lastStationId == null)
+            {
+                _lastStationId = GetRandomRadioGuid();
+                TurnOnAndSyncRadioClientRpc(_lastStationId!.Value.ToString());
+            }
             TurnOnRadioClientRpc();
         }
 
@@ -55,6 +72,14 @@ namespace RadioFurniture.Behaviour
         }
 
         [ClientRpc]
+        public void TurnOnAndSyncRadioClientRpc(string guidString)
+        {
+            // SYNC 
+            _lastStationId = Guid.Parse(guidString);
+            TurnRadioOnOff(true);
+        }
+
+        [ClientRpc]
         public void TurnOffRadioClientRpc()
         {
             TurnRadioOnOff(false);
@@ -64,9 +89,30 @@ namespace RadioFurniture.Behaviour
         {
             Debug.Log("Changing radio state!");
             Debug.Log(state);
+         
+            if (state && _lastStationId != null)
+            {
+                var station = RadioManager.GetRadioStationByGuid(_lastStationId.Value);
+                if (station != null)
+                {
+                    Debug.Log("Changing radio station...");
+                    PlayTransitionSound();
+                    PlayAudioFromStream(station.UrlResolved.ToString());
+                }
+            }
+            else if (!state && _stream != null)
+            {
+                Stop();
+                PlayTransitionSound();
+            }
             _radioOn = state;
         }
 
+        private void PlayTransitionSound()
+        {
+            var seekClip = _channelSeekClips[UnityEngine.Random.Range(0, _channelSeekClips.Count)];
+            _audioSource.PlayOneShot(seekClip);
+        }
         public void PlayAudioFromStream(string uri)
         {
             if (_stream == null) _stream = new MP3Stream();
