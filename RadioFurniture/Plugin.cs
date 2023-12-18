@@ -32,7 +32,7 @@ namespace RadioFurniture
             }
 
             RegisterRPCs();
-            LethalLib.Modules.Unlockables.RegisterUnlockable(assets.unlockable, 1, LethalLib.Modules.StoreType.Decor);
+            LethalLib.Modules.Unlockables.RegisterUnlockable(assets.unlockable, 80, LethalLib.Modules.StoreType.ShipUpgrade);
             RadioManager.PreloadStations();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 

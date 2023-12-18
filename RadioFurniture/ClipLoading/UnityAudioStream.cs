@@ -42,7 +42,6 @@ namespace RadioFurniture.ClipLoading
         {
             if (_stream != null && _stream.decomp)
             {
-                Debug.Log("new clip just dropped.");
                 _audioSource.clip = AudioClip.Create("mp3_Stream", int.MaxValue,
                     _stream.bufferedWaveProvider.WaveFormat.Channels,
                     _stream.bufferedWaveProvider.WaveFormat.SampleRate,

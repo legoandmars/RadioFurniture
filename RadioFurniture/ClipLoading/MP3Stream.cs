@@ -96,7 +96,6 @@ namespace RadioFurniture.ClipLoading
                     {
                         if (IsBufferNearlyFull)
                         {
-                            System.Console.WriteLine("Buffer getting full, taking a break");
                             Thread.Sleep(1000);
                         }
                         else
@@ -266,11 +265,6 @@ namespace RadioFurniture.ClipLoading
             playbackState = StreamingPlaybackState.Buffering;
             _audioSource.Pause();
             // Debug.WriteLine(String.Format("Paused to buffer, waveOut.PlaybackState={0}", waveOut.PlaybackState));
-        }
-
-        private IWavePlayer CreateWaveOut()
-        {
-            return new WaveOut();
         }
     }
 }
