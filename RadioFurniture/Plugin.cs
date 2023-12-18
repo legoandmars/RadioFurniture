@@ -33,6 +33,7 @@ namespace RadioFurniture
             RegisterRPCs();
             LethalLib.Modules.Unlockables.RegisterUnlockable(assets.unlockable, 1, LethalLib.Modules.StoreType.Decor);
             RadioManager.PreloadStations();
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
             Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
 

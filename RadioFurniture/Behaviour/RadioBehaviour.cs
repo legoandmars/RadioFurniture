@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using RadioFurniture.ClipLoading;
+using RadioFurniture.Events;
 using RadioFurniture.Managers;
 using System;
 using System.Collections.Generic;
@@ -28,11 +29,38 @@ namespace RadioFurniture.Behaviour
         private MP3Stream? _stream;
         private Guid? _lastStationId;
         private bool _playingStatic = false;
+        private bool _currentlyStorming = false;
 
         private void Awake()
         {
             _audioSource.volume = 0.5f;
             _staticAudioSource.clip = _static;
+            WeatherEvents.OnStormStarted += OnStormStarted;
+            WeatherEvents.OnStormEnded += OnStormEnded;
+        }
+
+        private void OnDestroy()
+        {
+            WeatherEvents.OnStormStarted -= OnStormStarted;
+            WeatherEvents.OnStormEnded -= OnStormEnded;
+        }
+
+        private void OnStormStarted()
+        {
+            _currentlyStorming = true;
+            if (_stream != null)
+            {
+                _stream.Distorted = true;
+            }
+        }
+
+        private void OnStormEnded()
+        {
+            _currentlyStorming = false;
+            if (_stream != null)
+            {
+                _stream.Distorted = false;
+            }
         }
 
         public void TogglePowerLocalClient()
@@ -156,6 +184,7 @@ namespace RadioFurniture.Behaviour
         public void PlayAudioFromStream(string uri)
         {
             if (_stream == null) _stream = new MP3Stream();
+            if (_currentlyStorming) _stream.Distorted = true;
             StartMP3Stream(uri).Forget();
         }
 
@@ -174,13 +203,21 @@ namespace RadioFurniture.Behaviour
         {
             if (_stream != null && _stream.decomp)
             {
-                StopStaticIfPlaying();
+                if (!_currentlyStorming)
+                {
+                    StopStaticIfPlaying();
+                }
+                else if (_currentlyStorming && !_playingStatic)
+                {
+                    PlayStatic();
+                }
 
                 Debug.Log("new clip just dropped.");
                 _audioSource.clip = AudioClip.Create("mp3_Stream", int.MaxValue,
                     _stream.bufferedWaveProvider.WaveFormat.Channels,
                     _stream.bufferedWaveProvider.WaveFormat.SampleRate,
-                    true, new AudioClip.PCMReaderCallback(_stream.ReadData));
+                    true, 
+                    new AudioClip.PCMReaderCallback(_stream.ReadData));
 
                 _stream.decomp = false; //Do not create shitload of audioclips
             }

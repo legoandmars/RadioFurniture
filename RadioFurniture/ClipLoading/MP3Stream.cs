@@ -20,6 +20,7 @@ namespace RadioFurniture.ClipLoading
             Paused
         }
 
+        public bool Distorted = false;
         public bool decomp = false;
         public string buffer_info, song_info;
         public BufferedWaveProvider bufferedWaveProvider;
@@ -158,6 +159,12 @@ namespace RadioFurniture.ClipLoading
             if (bufferedWaveProvider != null)
             {
                 bufferedWaveProvider.ToSampleProvider().Read(data, 0, data.Length);
+                if (!Distorted) return;
+                for (int i = 0; i < data.Length; i++)
+                {
+                    var distortion = (Mathf.Cos(0.4f * Time.time) / 3) - (0.33f / 2);
+                    data[i] = Mathf.Clamp(data[i] + distortion + UnityEngine.Random.Range(-0.07f, 0.07f), 0, 1);
+                }
             }
         }
 
