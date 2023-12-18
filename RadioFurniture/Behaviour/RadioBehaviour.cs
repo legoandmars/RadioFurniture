@@ -26,14 +26,18 @@ namespace RadioFurniture.Behaviour
         [SerializeField]
         private AudioClip _static;
 
+        [SerializeField]
+        private Transform _volumeKnob;
+
         private MP3Stream? _stream;
         private Guid? _lastStationId;
         private bool _playingStatic = false;
         private bool _currentlyStorming = false;
+        private float _volume = 0.4f;
 
         private void Awake()
         {
-            _audioSource.volume = 0.5f;
+            SetVolume(0.4f);
             _staticAudioSource.clip = _static;
             WeatherEvents.OnStormStarted += OnStormStarted;
             WeatherEvents.OnStormEnded += OnStormEnded;
@@ -65,7 +69,6 @@ namespace RadioFurniture.Behaviour
 
         public void TogglePowerLocalClient()
         {
-            Debug.Log("TOGGLING POWER");
             if (_radioOn)
             {
                 TurnOffRadioServerRpc();
@@ -74,6 +77,26 @@ namespace RadioFurniture.Behaviour
             {
                 TurnOnRadioServerRpc();
             }
+        }
+
+        public void RaiseVolume()
+        {
+            SetVolume(_volume + 0.1f);
+        }
+
+        public void LowerVolume()
+        {
+            SetVolume(_volume - 0.1f);
+        }
+
+        private void SetVolume(float volume)
+        {
+            volume = Mathf.Clamp01(volume);
+            // 0.15 - 0.54
+            _volumeKnob.transform.localPosition = new Vector3(_volumeKnob.localPosition.x, _volumeKnob.localPosition.y, 0.15f + (volume * 0.39f));
+            _volume = volume;
+            _audioSource.volume = volume;
+            _staticAudioSource.volume = volume != 0f ? Mathf.Clamp01(volume + 0.15f) : 0f;
         }
 
         private Guid GetRandomRadioGuid()
@@ -86,7 +109,6 @@ namespace RadioFurniture.Behaviour
 
         public void ToggleStationLocalClient()
         {
-            Debug.Log("TOGGLING STATION");
             if (_radioOn)
             {
                 ChangeStationServerRpc();
