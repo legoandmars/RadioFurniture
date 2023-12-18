@@ -118,6 +118,21 @@ namespace RadioFurniture.Behaviour
             TurnOnAndSyncRadioClientRpc(_lastStationId!.Value.ToString());
         }
 
+        [ServerRpc(RequireOwnership = false)]
+        public void SyncRadioServerRpc()
+        {
+            SyncRadioClientRpc(_lastStationId.ToString(), _radioOn, _currentlyStorming);
+        }
+
+        [ClientRpc]
+        public void SyncRadioClientRpc(string guidString, bool radioOn, bool currentlyStorming)
+        {
+            if (Guid.TryParse(guidString, out Guid guid) && guid == _lastStationId && radioOn == _radioOn && currentlyStorming == _currentlyStorming) return;
+            _currentlyStorming = currentlyStorming;
+            _lastStationId = guid;
+            TurnRadioOnOff(radioOn);
+        }
+
         [ClientRpc]
         public void TurnOnRadioClientRpc()
         {
@@ -128,7 +143,11 @@ namespace RadioFurniture.Behaviour
         public void TurnOnAndSyncRadioClientRpc(string guidString)
         {
             // SYNC 
-            _lastStationId = Guid.Parse(guidString);
+            if (Guid.TryParse(guidString, out Guid guid))
+            {
+                _lastStationId = guid;
+            }
+
             TurnRadioOnOff(true);
         }
 

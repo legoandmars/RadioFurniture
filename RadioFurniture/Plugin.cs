@@ -11,6 +11,7 @@ using HarmonyLib;
 using System.Reflection;
 using System.IO;
 using LethalLib.Extras;
+using Unity.Netcode;
 
 namespace RadioFurniture
 {
@@ -62,6 +63,10 @@ namespace RadioFurniture
             var bundlePath = Path.Join(Path.GetDirectoryName(this.Info.Location), "radio");
             var bundle = AssetBundle.LoadFromFile(bundlePath);
             var unlockableItemDef = bundle.LoadAsset<UnlockableItemDef>("assets/data/radio.asset");
+            if (unlockableItemDef?.unlockable?.prefabObject != null)
+            {
+                LethalLib.Modules.NetworkPrefabs.RegisterNetworkPrefab(unlockableItemDef.unlockable.prefabObject);
+            }
             return unlockableItemDef;
         }
 
