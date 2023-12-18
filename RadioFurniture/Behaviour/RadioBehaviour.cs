@@ -17,6 +17,9 @@ namespace RadioFurniture.Behaviour
         private AudioSource _audioSource = default;
 
         [SerializeField]
+        private AudioSource _staticAudioSource = default;
+
+        [SerializeField]
         private List<AudioClip> _channelSeekClips = new();
 
         [SerializeField]
@@ -29,6 +32,7 @@ namespace RadioFurniture.Behaviour
         private void Awake()
         {
             _audioSource.volume = 0.5f;
+            _staticAudioSource.clip = _static;
         }
 
         public void TogglePowerLocalClient()
@@ -116,16 +120,16 @@ namespace RadioFurniture.Behaviour
             if (state && _lastStationId != null)
             {
                 Debug.Log("Changing radio station...");
+                if (_stream != null)
+                {
+                    Stop();
+                }
                 PlayTransitionSound();
                 PlayStatic();
 
                 var station = RadioManager.GetRadioStationByGuid(_lastStationId.Value);
                 if (station != null)
                 {
-                    if (_stream != null)
-                    {
-                        Stop();
-                    }
                     PlayAudioFromStream(station.UrlResolved.ToString());
                 }
             }
@@ -140,14 +144,13 @@ namespace RadioFurniture.Behaviour
         private void PlayTransitionSound()
         {
             var seekClip = _channelSeekClips[UnityEngine.Random.Range(0, _channelSeekClips.Count)];
-            _audioSource.PlayOneShot(seekClip);
+            _staticAudioSource.PlayOneShot(seekClip);
         }
 
         private void PlayStatic()
         {
             _playingStatic = true;
-            _audioSource.clip = _static;
-            _audioSource.Play();
+            _staticAudioSource.Play();
         }
 
         public void PlayAudioFromStream(string uri)
@@ -187,9 +190,7 @@ namespace RadioFurniture.Behaviour
         {
             if (_playingStatic)
             {
-                _audioSource.Stop();
-                _audioSource.time = 0;
-                _audioSource.clip = null;
+                _staticAudioSource.Stop();
                 _playingStatic = false;
             }
         }
